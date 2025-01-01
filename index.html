@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AviCalculadora</title>
+    <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+        }
+
+        body {
+            font-family: 'MS Sans Serif', 'Segoe UI', Tahoma, sans-serif;
+            background: #008080;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAYAAABytg0kAAAAEklEQVQImWNgYGD4z0AEgDABDQEQ7wJ40QAAAABJRU5ErkJggg==");
+        }
+
+        .window {
+            background: #c0c0c0;
+            border: 2px solid #dfdfdf;
+            border-right-color: #000;
+            border-bottom-color: #000;
+            box-shadow: inset -1px -1px #0a0a0a, inset 1px 1px #ffffff, inset -2px -2px grey, inset 2px 2px #dfdfdf;
+            padding: 3px;
+            max-width: 500px;
+            width: 100%;
+        }
+
+        .title-bar {
+            background: linear-gradient(90deg, #000080, #1084d0);
+            padding: 3px 2px 3px 3px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .title-bar-text {
+            font-family: 'VT323', monospace;
+            font-size: 16px;
+            text-align: center;
+            width: 100%;
+        }
+
+        .window-body {
+            padding: 12px;
+            background: #c0c0c0;
+        }
+
+        .field-row {
+            margin: 12px 0;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+
+        input[type="date"], input[type="number"] {
+            width: 100%;
+            padding: 3px;
+            border: 2px solid #dfdfdf;
+            border-right-color: #000;
+            border-bottom-color: #000;
+            box-shadow: inset -1px -1px #dfdfdf, inset 1px 1px #000;
+            background: white;
+            font-family: 'MS Sans Serif', sans-serif;
+        }
+
+        .btn {
+            border: 2px solid #dfdfdf;
+            border-right-color: #000;
+            border-bottom-color: #000;
+            background: #c0c0c0;
+            box-shadow: inset -1px -1px #0a0a0a, inset 1px 1px #fff, inset -2px -2px grey, inset 2px 2px #dfdfdf;
+            padding: 5px 20px;
+            cursor: pointer;
+            font-family: 'MS Sans Serif', sans-serif;
+            font-size: 14px;
+            position: relative;
+        }
+
+        .btn:active {
+            border: 2px solid #000;
+            border-right-color: #dfdfdf;
+            border-bottom-color: #dfdfdf;
+            box-shadow: inset 1px 1px #0a0a0a, inset -1px -1px #fff, inset 2px 2px grey, inset -2px -2px #dfdfdf;
+        }
+
+        .result {
+            margin-top: 12px;
+            border: 2px solid #dfdfdf;
+            border-right-color: #000;
+            border-bottom-color: #000;
+            padding: 8px;
+            background: white;
+            font-family: 'MS Sans Serif', sans-serif;
+            font-size: 14px;
+            display: none;
+        }
+
+        .result-item {
+            margin: 8px 0;
+            line-height: 1.4;
+        }
+
+        .result-highlight {
+            color: #000080;
+            font-weight: bold;
+        }
+
+        @media (max-width: 480px) {
+            .window {
+                margin: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="window">
+        <div class="title-bar">
+            <div class="title-bar-text">🐥 Calculadora de Idade e Previsões 🐔</div>
+        </div>
+        <div class="window-body">
+            <div class="field-row">
+                <label for="alojamento">Data de Alojamento:</label>
+                <input type="date" id="alojamento" required>
+            </div>
+
+            <div class="field-row">
+                <label for="transferencia">Idade para Transferência (semanas):</label>
+                <input type="number" id="transferencia" min="1" max="52" value="16">
+            </div>
+
+            <div class="field-row">
+                <label for="descarte">Idade para Descarte (semanas):</label>
+                <input type="number" id="descarte" min="1" max="120" value="95">
+            </div>
+
+            <div style="text-align: center;">
+                <button class="btn" onclick="calcularIdadeEPrevisoes()">Calcular</button>
+            </div>
+
+            <div id="resultado" class="result">
+                <div id="idadeAtual" class="result-item"></div>
+                <div id="previsaoTransferencia" class="result-item"></div>
+                <div id="previsaoDescarte" class="result-item"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const clickSound = new Audio("data:audio/wav;base64,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qJrx4KOQjahZxWbcZgztj2c49nKmkId44S71j0c8eV9yDK6uPRzx5X18eDvjvQ6yKo9ZSS6l//8elePK/Lf//IInrOF/FvDoADYAGBMGb7FtErm5MXMlmPAJQVgWta7Zx2go+8xJ0UiCb8LHHdftWyLJE0QIAIsI+UbXu67dZMjmgDGCGl1H+vpF4NSDckSIkk7Vd+sxEhBQMRU8j/12UIRhzSaUdQ+rQU5kGeFxm+hb1oh6pWWmv3uvmReDl0UnvtapVaIzo1jZbf/pD6ElLqSX+rUmOQNpJFa/r+sa4e/pBlAABoAAAAA3CUgShLdGIxsY7AUABPRrgCABdDuQ5GC7DqPQCgbbJUAoRSUj+NIEig0YfyWUho1VBBBA//uQZB4ABZx5zfMakeAAAAmwAAAAF5F3P0w9GtAAACfAAAAAwLhMDmAYWMgVEG1U0FIGCBgXBXAtfMH10000EEEEEECUBYln03TTTdNBDZopopYvrTTdNa325mImNg3TTPV9q3pmY0xoO6bv3r00y+IDGid/9aaaZTGMuj9mpu9Mpio1dXrr5HERTZSmqU36A3CumzN/9Robv/Xx4v9ijkSRSNLQhAWumap82WRSBUqXStV/YcS+XVLnSS+WLDroqArFkMEsAS+eWmrUzrO0oEmE40RlMZ5+ODIkAyKAGUwZ3mVKmcamcJnMW26MRPgUw6j+LkhyHGVGYjSUUKNpuJUQoOIAyDvEyG8S5yfK6dhZc0Tx1KI/gviKL6qvvFs1+bWtaz58uUNnryq6kt5RzOCkPWlVqVX2a/EEBUdU1KrXLf40GoiiFXK///qpoiDXrOgqDR38JB0bw7SoL+ZB9o1RCkQjQ2CBYZKd/+VJxZRRZlqSkKiws0WFxUyCwsKiMy7hUVFhIaCrNQsKkTIsLivwKKigsj8XYlwt/WKi2N4d//uQRCSAAjURNIHpMZBGYiaQPSYyAAABLAAAAAAAACWAAAAApUF/Mg+0aohSIRobBAsMlO//Kk4soosy1JSFRYWaLC4qZBYWFRGZdwqKiwkNBVmoWFSJkWFxX4FFRQWR+LsS4W/rFRb/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////VEFHAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAU291bmRib3kuZGUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAMjAwNGh0dHA6Ly93d3cuc291bmRib3kuZGUAAAAAAAAAACU=");
+
+        const diasSemana = ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado'];
+
+        function calcularIdadeEPrevisoes() {
+            clickSound.play();
+
+            const dataAlojamento = new Date(document.getElementById('alojamento').value + 'T00:00:00');
+            const semanasTransferencia = parseInt(document.getElementById('transferencia').value);
+            const semanasDescarte = parseInt(document.getElementById('descarte').value);
+            const hoje = new Date();
+
+            if (isNaN(dataAlojamento.getTime())) {
+                alert('Por favor, selecione uma data válida!');
+                return;
+            }
+
+            // Calcular idade atual
+            const diffTime = Math.abs(hoje - dataAlojamento);
+            const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+            const semanas = Math.floor(diffDays / 7);
+            const dias = diffDays % 7;
+
+            // Calcular datas de transferência e descarte
+            const dataTransferencia = new Date(dataAlojamento);
+            dataTransferencia.setDate(dataAlojamento.getDate() + (semanasTransferencia * 7));
+
+            const dataDescarte = new Date(dataAlojamento);
+            dataDescarte.setDate(dataAlojamento.getDate() + (semanasDescarte * 7));
+
+            // Obter dias da semana
+            const diaAlojamento = diasSemana[dataAlojamento.getDay()];
+            const diaTransferencia = diasSemana[dataTransferencia.getDay()];
+            const diaDescarte = diasSemana[dataDescarte.getDay()];
+
+            // Exibir resultados
+            const resultado = document.getElementById('resultado');
+            resultado.style.display = 'block';
+
+            document.getElementById('idadeAtual').innerHTML = `
+                <span class="result-highlight">Idade Atual:</span> ${semanas} semana${semanas !== 1 ? 's' : ''} e ${dias} dia${dias !== 1 ? 's' : ''}<br>
+                <small>Data de Alojamento: ${formatarData(dataAlojamento)} (${diaAlojamento})</small>
+            `;
+
+            document.getElementById('previsaoTransferencia').innerHTML = `
+                <span class="result-highlight">Data de Transferência:</span> ${formatarData(dataTransferencia)} (${diaTransferencia})
+            `;
+
+            document.getElementById('previsaoDescarte').innerHTML = `
+                <span class="result-highlight">Data de Descarte:</span> ${formatarData(dataDescarte)} (${diaDescarte})
+            `;
+        }
+
+        function formatarData(data) {
+            return data.toLocaleDateString('pt-BR', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric'
+            });
+        }
+
+        // Definir data máxima como hoje
+        const inputData = document.getElementById('alojamento');
+        const hoje = new Date().toISOString().split('T')[0];
+        inputData.max = hoje;
+    </script>
+</body>
+</html>
